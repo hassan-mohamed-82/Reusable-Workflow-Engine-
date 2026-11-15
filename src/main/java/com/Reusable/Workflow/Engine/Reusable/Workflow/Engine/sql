@@ -1,0 +1,26 @@
+CREATE TABLE workflow_request (
+    id                BIGSERIAL PRIMARY KEY,
+    request_type      VARCHAR(50)  NOT NULL,
+    reference_id      BIGINT       NOT NULL,
+    requester_emp_id  BIGINT       NOT NULL,
+    status            VARCHAR(20)  NOT NULL,
+    current_level     INT,
+    created_at        TIMESTAMP    NOT NULL DEFAULT now(),
+    completed_at      TIMESTAMP,
+    version           BIGINT       NOT NULL DEFAULT 0,
+    CONSTRAINT uq_workflow_ref UNIQUE (request_type, reference_id)
+);
+
+CREATE TABLE workflow_step (
+    id                   BIGSERIAL PRIMARY KEY,
+    workflow_request_id  BIGINT      NOT NULL REFERENCES workflow_request(id) ON DELETE CASCADE,
+    approver_emp_id      BIGINT      NOT NULL,
+    approval_level       INT         NOT NULL,
+    status               VARCHAR(20) NOT NULL,
+    decision_date        TIMESTAMP,
+    comment              TEXT,
+    version              BIGINT      NOT NULL DEFAULT 0,
+    CONSTRAINT uq_step_level UNIQUE (workflow_request_id, approval_level)
+);
+
+CREATE INDEX idx_step_approver_status ON workflow_step (approver_emp_id, status);
